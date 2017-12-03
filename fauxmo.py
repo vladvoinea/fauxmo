@@ -411,11 +411,20 @@ class gpio_handler(object):
 # 16 switches it can control. Only the first 16 elements of the FAUXMOS
 # list will be used.
 
-FAUXMOS = [
-    ['office lights', rest_api_handler('http://192.168.5.4/ha-api?cmd=on&a=office', 'http://192.168.5.4/ha-api?cmd=off&a=office')],
-    ['kitchen lights', rest_api_handler('http://192.168.5.4/ha-api?cmd=on&a=kitchen', 'http://192.168.5.4/ha-api?cmd=off&a=kitchen')],
-]
+# FAUXMOS = [
+#     ['office lights', rest_api_handler('http://192.168.5.4/ha-api?cmd=on&a=office', 'http://192.168.5.4/ha-api?cmd=off&a=office')],
+#     ['kitchen lights', rest_api_handler('http://192.168.5.4/ha-api?cmd=on&a=kitchen', 'http://192.168.5.4/ha-api?cmd=off&a=kitchen')],
+# ]
 
+FAUXMOS = [
+        ['office lights', gpio_handler(35)],
+        ['kitchen lights', gpio_handler(37)],
+    ]
+
+# FAUXMOS = [
+#         ['office lights', dummy_handler("officelight")],
+#         ['kitchen lights', dummy_handler("kitchenlight")],
+#     ]
 
 if len(sys.argv) > 1 and sys.argv[1] == '-d':
     DEBUG = True
@@ -446,6 +455,7 @@ while True:
         p.poll(100)
         time.sleep(0.1)
     except Exception, e:
+        GPIO.cleanup()
         dbg(e)
         break
 
