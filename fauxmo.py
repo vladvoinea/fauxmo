@@ -372,6 +372,17 @@ class rest_api_handler(object):
         r = requests.get(self.off_cmd)
         return r.status_code == 200
 
+class dummy_handler(object):
+    def __init__(self, name):
+        self.name = name
+
+    def on(self):
+        print(self.name, "ON")
+        return True
+
+    def off(self):
+        print(self.name, "OFF")
+        return True
 
 # Each entry is a list with the following elements:
 #
