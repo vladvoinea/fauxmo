@@ -35,6 +35,7 @@ import sys
 import time
 import urllib
 import uuid
+import RPi.GPIO as GPIO
 
 
 
@@ -382,6 +383,22 @@ class dummy_handler(object):
 
     def off(self):
         print(self.name, "OFF")
+        return True
+
+class gpio_handler(object):
+    def __init__(self, pin_number):
+        self.pin = pin_number
+        GPIO.setmode(GPIO.BOARD)
+        GPIO.setup(pin_number, GPIO.OUT)
+
+    def on(self):
+        print(self.pin, "ON")
+        GPIO.output(self.pin, 1)
+        return True
+
+    def off(self):
+        print(self.pin, "OFF")
+        GPIO.output(self.pin, 0)
         return True
 
 # Each entry is a list with the following elements:
