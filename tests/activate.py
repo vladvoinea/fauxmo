@@ -12,7 +12,7 @@ import urllib2
 # 	</u:SetBinaryState>							// closing tag for method
 # </s:Body>										// closing tag for body
 
-host = '10.0.0.14'
+host = '10.0.0.11'
 officePort = '52581'
 kitchenPort = '52582'
 twitterPort = '52583'

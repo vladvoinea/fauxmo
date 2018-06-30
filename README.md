@@ -22,7 +22,8 @@ any code you want.
 
 ### Dependencies
 
- - [http-parser] pip install http-parser
+ - [http-parser] install via 'sudo pip install http-parser'.
+ 	* Used by wemos-request class to parse queries from the socket stream.
 
 ### Requirements
 
@@ -45,7 +46,7 @@ TODO: Update with instructions for additional libraries helpful for testing.
 
 
 ### Links
-[LINK NAME]: url here
+[HttpParser]: https://github.com/benoitc/http-parser/
 
 
 
