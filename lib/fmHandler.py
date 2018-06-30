@@ -52,7 +52,7 @@ class file(object):
     def on(self):
         print(self.name, "ON")
         # execute the script
-        module = importlib.import_module(name)
+        module = importlib.import_module(self.name)
         return True
 
     def off(self):

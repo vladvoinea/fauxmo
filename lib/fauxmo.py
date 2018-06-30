@@ -7,21 +7,9 @@ import fmDevice
 import fmResponder
 import fmPoller
 import fmUtilities
+import fmXml
+import wemos_request
 
-# This XML is the minimum needed to define one of our virtual switches
-# to the Amazon Echo
-SETUP_XML = """<?xml version="1.0"?>
-<root>
-  <device>
-    <deviceType>urn:MakerMusings:device:controllee:1</deviceType>
-    <friendlyName>%(device_name)s</friendlyName>
-    <manufacturer>Belkin International Inc.</manufacturer>
-    <modelName>Emulated Socket</modelName>
-    <modelNumber>3.1415</modelNumber>
-    <UDN>uuid:Socket-1_0-%(device_serial)s</UDN>
-  </device>
-</root>
-"""
 
 # This subclass does the bulk of the work to mimic a WeMo switch on the network.
 
@@ -47,74 +35,46 @@ class fauxmo(fmDevice.upnp_device):
         return self.name
 
     def handle_request(self, data, sender, socket):
-        if respondWithSetup(data, socket):
-          return
-        elif data.lower().find('SOAPACTION: "urn:Belkin:service:basicevent:1#SetBinaryState"'.lower()) != -1:
-            success = False
-            if data.find('<BinaryState>1</BinaryState>') != -1:
-                # on
-                fmUtilities.dbg("Responding to ON for %s" % self.name)
-                success = self.action_handler.on()
-            elif data.find('<BinaryState>0</BinaryState>') != -1:
-                # off
-                fmUtilities.dbg("Responding to OFF for %s" % self.name)
-                success = self.action_handler.off()
-            else:
-                fmUtilities.dbg("Unknown Binary State request:")
-                fmUtilities.dbg(data)
-            if success:
-                # The echo is happy with the 200 status code and doesn't
-                # appear to care about the SOAP response body
-                soap = ""
-                date_str = email.utils.formatdate(timeval=None, localtime=False, usegmt=True)
-                message = ("HTTP/1.1 200 OK\r\n"
-                           "CONTENT-LENGTH: %d\r\n"
-                           "CONTENT-TYPE: text/xml charset=\"utf-8\"\r\n"
-                           "DATE: %s\r\n"
-                           "EXT:\r\n"
-                           "SERVER: Unspecified, UPnP/1.0, Unspecified\r\n"
-                           "X-User-Agent: redsonic\r\n"
-                           "CONNECTION: close\r\n"
-                           "\r\n"
-                           "%s" % (len(soap), date_str, soap))
-                socket.send(message)
+        command = wemos_request.wemos_request.from_data(data)
+        success = False
+        if command.is_requesting_setup():
+            fmUtilities.dbg("Responding to setup.xml for %s" % self.name)
+            xml = fmXml.SETUP_XML % {'device_name' : self.name, 'device_serial' : self.serial}
+            socket.send(self.get_response_message("200 OK", xml))
+            return
+        elif command.is_wemos_command():
+            success = self.handle_wemos_command(command.get_action())
+                
+        if success:
+            # The echo is happy with the 200 status code and doesn't
+            # appear to care about the SOAP response body
+            socket.send(self.get_response_message("200 OK", ""))
         else:
             fmUtilities.dbg(data)
-            soap = ""
-            date_str = email.utils.formatdate(timeval=None, localtime=False, usegmt=True)
-            message = ("HTTP/1.1 404 Not Found\r\n"
-                       "CONTENT-LENGTH: %d\r\n"
-                       "CONTENT-TYPE: text/xml charset=\"utf-8\"\r\n"
-                       "DATE: %s\r\n"
-                       "EXT:\r\n"
-                       "SERVER: Unspecified, UPnP/1.0, Unspecified\r\n"
-                       "X-User-Agent: redsonic\r\n"
-                       "CONNECTION: close\r\n"
-                       "\r\n"
-                       "%s" % (len(soap), date_str, soap))
-            socket.send(message)
+            socket.send(self.get_response_message("404 NOT FOUND", ""))
 
-    def respondWithAction(data, socket):
-      return False
+    def get_response_message(self, status, body):
+        date_str = email.utils.formatdate(timeval=None, localtime=False, usegmt=True)
+        message = ("HTTP/1.1 %s\r\n"
+                   "CONTENT-LENGTH: %d\r\n"
+                   "CONTENT-TYPE: text/xml\r\n"
+                   "DATE: %s\r\n"
+                   "LAST-MODIFIED: %s\r\n"
+                   "SERVER: Unspecified, UPnP/1.0, Unspecified\r\n"
+                   "X-User-Agent: redsonic\r\n"
+                   "CONNECTION: close\r\n"
+                   "\r\n"
+                   "%s" % (status, len(body), date_str, date_str, body))
+        return message
 
-    def respondWithSetup(data, socket):
-      if data.find('GET /setup.xml HTTP/1.1') == 0:
-            fmUtilities.dbg("Responding to setup.xml for %s" % self.name)
-            xml = SETUP_XML % {'device_name' : self.name, 'device_serial' : self.serial}
-            date_str = email.utils.formatdate(timeval=None, localtime=False, usegmt=True)
-            message = ("HTTP/1.1 200 OK\r\n"
-                       "CONTENT-LENGTH: %d\r\n"
-                       "CONTENT-TYPE: text/xml\r\n"
-                       "DATE: %s\r\n"
-                       "LAST-MODIFIED: Sat, 01 Jan 2000 00:01:15 GMT\r\n"
-                       "SERVER: Unspecified, UPnP/1.0, Unspecified\r\n"
-                       "X-User-Agent: redsonic\r\n"
-                       "CONNECTION: close\r\n"
-                       "\r\n"
-                       "%s" % (len(xml), date_str, xml))
-            socket.send(message)
-            return True
-      return False
+    def handle_wemos_command(self, action):
+        fmUtilities.dbg("Responding to %s for %s" % (action, self.name))
+        if action == '1' or action == 1:
+            return self.action_handler.on()
+        elif action == '0' or action == 0:
+            return self.action_handler.off()
+        else:
+            return False
 
     def on(self):
         return False
