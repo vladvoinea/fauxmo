@@ -3,6 +3,7 @@
 import socket
 import select
 import struct
+import time
 import fmUtilities
 
 # Since we have a single process managing several virtual UPnP devices,
