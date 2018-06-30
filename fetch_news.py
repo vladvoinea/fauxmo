@@ -7,6 +7,10 @@ import os
 from email.MIMEMultipart import MIMEMultipart
 from email.MIMEText import MIMEText
 
+# This is a sample script that can be called from a fauxmo file handler.
+# When called this script will fetch trending topics on twitter as an
+# html page and email them to your specified email address.
+
 print("Lets fetch trending twitter topics...")
 
 # fetch trending topics from twitter
@@ -28,22 +32,19 @@ try:
 
 	# get the directory this file is in
 	fileDir = os.path.dirname(os.path.realpath('__file__'))
+
 	# join the filename with the directory path for this file, but in the parent dir
 	filename = os.path.join(fileDir, '../cred.json')
-	print filename
 
 	# load credential file for our email user
 	with open(filename) as f:
 	    data = json.load(f)
 
-	# load email & password from credential file for email account
-	# that will be sending the email
-	fromaddr = data['myemail']
+	# load sender email & password from credential file
+	# as well as recipient email
+	fromaddr = data['sender']
 	frompwd = data['credential']
-
-	# setup recipient email
-	# enter gmail email address here where you would like the email sent
-	toaddr = "MY_EXAMPLE_EMAIL@sample.com"
+	toaddr = data['recipient']
 
 	# bail if any parameters are not set
 	assert fromaddr and frompwd and toaddr

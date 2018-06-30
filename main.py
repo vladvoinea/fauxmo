@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-from lib import *
+from fauxmo import *
 import sys
 import time
 
@@ -18,7 +18,7 @@ import time
 
 
 # Provide a list of virtual 'devices' you want to provide control for by
-# defining a FAUXMOS array of handlers. Use any handler defined in the
+# defining a FAUXMOS array of handlers. Use any handler class defined in the
 # Handler.py file or define your own.
 #
 # Each item in the array is a list with the following elements:
@@ -27,33 +27,27 @@ import time
 # 	- index 2 - port # (optional; may be omitted)
 
 
-# Sample array using rest handlers, defined urls will be called when on/off actions are triggered.
-# FAUXMOS = [
+# Array of virtual devices that will be visible on the network. 
+FAUXMOS = [
+
+# Rest devices, defined urls will be called when on/off actions are triggered.
 #     ['office lights', Handler.rest('http://192.168.5.4/ha-api?cmd=on&a=office', 'http://192.168.5.4/ha-api?cmd=off&a=office')],
 #     ['kitchen lights', Handler.rest('http://192.168.5.4/ha-api?cmd=on&a=kitchen', 'http://192.168.5.4/ha-api?cmd=off&a=kitchen')],
-# ]
 
-# Sample array using gpio handlers. For office lights gpio pin 35 will be turned on/off... etc.
-# FAUXMOS = [
-#         ['office lights', Handler.gpio(35)],
-#         ['kitchen lights', Handler.gpio(37)],
-#     ]
-
-# Sample array using file handlers, file handlers specify python files to execute when called.
-# 'file' handler expects the name of a script, it should be located in the same directory as
-# the 'main.py' file.
-# When you say "Alexa, turn on text", the 'sendText.py' script will be executed if implemented
-# with your custom behavior.
-# FAUXMOS = [
-#         ['text', Handler.file("sendText")],
-#         ['news', Handler.file("fetchNews")],
-#     ]
-
-# Sample array using dummy handlers. For office lights 'officeLight ON' or 'officeLight OFF' will be logged to the console.
-FAUXMOS = [
+# Dummy devices that simply log to the console when called.
         ['office lights', fmHandler.dummy("officelight"), 52581],
         ['kitchen lights', fmHandler.dummy("kitchenlight"), 52582],
-        ['fetch news', fmHandler.file('fetch_news'), 52583]
+
+# Run script devices, when called the script specified will be executed when device is turned 'ON'.
+# Script should be a python file, 'file' handler expects the name of a script, it should be located
+# in the same directory as the 'main.py' file.
+# When you say "Alexa, turn on Twitter Trends", the 'fetch_news.py' script will be executed and send
+# an email to the address you specify in the cred.json file.
+        ['twitter trends', fmHandler.file('fetch_news'), 52583]
+
+# Raspberry pi GPIO devices. For office lights gpio pin 35 will be turned on/off... etc.
+#         ['office lights', Handler.gpio(35)],
+#         ['kitchen lights', Handler.gpio(37)],
     ]
 
 # if you run this script with the -d flag, then enable logging for verbosity.
