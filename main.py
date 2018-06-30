@@ -51,6 +51,7 @@ import time
 FAUXMOS = [
         ['office lights', fmHandler.dummy("officelight"), 52581],
         ['kitchen lights', fmHandler.dummy("kitchenlight"), 52582],
+        ['fetch news', fmHandler.file('fetch_news'), 52583]
     ]
 
 # if you run this script with the -d flag, then enable logging for verbosity.
