@@ -1,4 +1,5 @@
-# fauxmo
+# fauxmo (refactored version)
+
 **Emulated Belkin WeMo devices that work with the Amazon Echo**
 
 Visit [this Maker Musings article](http://www.makermusings.com/2015/07/13/amazon-echo-and-home-automation/) to learn more about using this code to integrate
@@ -12,6 +13,46 @@ more sophisticated actions, the Echo doesn't provide any native options. This co
 emulates the Belkin WeMo devices in software, allowing you to have it appear that
 any number of them are on your network and to link their on and off actions to
 any code you want.
+
+### Features
+
+ - Simulates UPnP (Universal Plug n Play) devices on a network.
+ - 
+
+
+### Dependencies
+
+ - [http-parser] pip install http-parser
+
+### Requirements
+
+- [Python 2.7]
+
+### Installation & Use
+
+This is a refactored and modified version of the original fauxmo script written by MakerMusings. (makermusings.com)
+
+In this version the original script was split up based on functional components to form a python module. 
+The module files can be found in the /lib directory and are named based on their contained
+functionality. Instead of running the 'fauxmo.py' file as originally setup, you will now
+run the 'main.py' file.
+
+Virtual devices that will be visible on the network are defined in the FAUXMOS array found in the main.py. 
+You can edit or remove handlers from the array as desired. There are currently 3 sample virtual devices
+in the array.
+
+TODO: Update with instructions for additional libraries helpful for testing.
+
+
+### Links
+[LINK NAME]: url here
+
+
+
+
+### ----- Original README below -----
+
+
 
 ### Instructions
 

@@ -4,6 +4,8 @@ from lib import *
 import sys
 import time
 
+# See README.md file for explanation and overview of functionality.
+
 # uncomment RPi imports if you are launching or using on a raspberry pi.
 # references will need to be uncommented here (line 9 & 70) as well
 # as in the Handler.py file (import and gpio class definition).

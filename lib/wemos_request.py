@@ -9,6 +9,8 @@ try:
 except ImportError:
     from http_parser.pyparser import HttpParser
 
+# This class encapsulates a request received while polling and manages
+# logic to determine if it is targeting a WeMo device.
 class wemos_request(object):
     @staticmethod
     def from_data(data):
