@@ -1,0 +1,14 @@
+[Unit]
+Description=Fauxmo service for emulating local devices to connect to Alexa
+After=network.target
+
+[Service]
+ExecStart=/usr/bin/python /home/pi/fauxmo/fauxmo.py
+WorkingDirectory=/home/pi/fauxmo
+StandardOutput=inherit
+StandardError=inherit
+Restart=always
+User=pi
+
+[Install]
+WantedBy=multi-user.target
