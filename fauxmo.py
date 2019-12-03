@@ -233,23 +233,29 @@ class fauxmo(upnp_device):
                        "\r\n"
                        "%s" % (len(xml), date_str, xml))
             socket.send(message)
-        elif data.find('SOAPACTION: "urn:Belkin:service:basicevent:1#SetBinaryState"') != -1:
-            success = False
+        elif data.find('urn:Belkin:service:basicevent:1#GetBinaryState') != -1:
+            success = True
             if data.find('<BinaryState>1</BinaryState>') != -1:
-                # on
-                dbg("Responding to ON for %s" % self.name)
-                success = self.action_handler.on()
-            elif data.find('<BinaryState>0</BinaryState>') != -1:
-                # off
-                dbg("Responding to OFF for %s" % self.name)
-                success = self.action_handler.off()
+                 # on
+                 dbg("Responding to ON for %s" % self.name)
+                 #success = self.action_handler.on()
+                 #elif data.find('<BinaryState>0</BinaryState>') != -1:
+                 #off
+                 #dbg("Responding to OFF for %s" % self.name)
+                 #success = self.action_handler.off()
             else:
-                dbg("Unknown Binary State request:")
-                dbg(data)
+                 dbg("Unknown Binary State request:")
+                 dbg(data)
             if success:
                 # The echo is happy with the 200 status code and doesn't
                 # appear to care about the SOAP response body
-                soap = ""
+                soap = """<s:Envelope xmlns:s="http://schemas.xmlsoap.org/soap/envelope/" s:encodingStyle="http://schemas.xmlsoap.org/soap/encoding/">
+                <s:Body>
+                <u:GetBinaryStateResponse xmlns:u="urn:Belkin:service:basicevent:1">
+                <BinaryState>%s</BinaryState>
+                </u:GetBinaryStateResponse>
+                </s:Body>
+                </s:Envelope>""" % (self.action_handler.status())
                 date_str = email.utils.formatdate(timeval=None, localtime=False, usegmt=True)
                 message = ("HTTP/1.1 200 OK\r\n"
                            "CONTENT-LENGTH: %d\r\n"
@@ -261,7 +267,42 @@ class fauxmo(upnp_device):
                            "CONNECTION: close\r\n"
                            "\r\n"
                            "%s" % (len(soap), date_str, soap))
+                dbg("WE ARE RESPONDING WITH: %s" % message)
                 socket.send(message)
+        
+        
+        elif data.find('urn:Belkin:service:basicevent:1#SetBinaryState') != -1:
+            success = False
+            if data.find('<BinaryState>1</BinaryState>') != -1:
+                 # on
+                 dbg("Responding to ON for %s" % self.name)
+                 success = self.action_handler.on()
+            elif data.find('<BinaryState>0</BinaryState>') != -1:
+                 #off
+                 dbg("Responding to OFF for %s" % self.name)
+                 success = self.action_handler.off()
+            soap = """<s:Envelope xmlns:s="http://schemas.xmlsoap.org/soap/envelope/" s:encodingStyle="http://schemas.xmlsoap.org/soap/encoding/">
+            <s:Body>
+            <u:SetBinaryStateResponse xmlns:u="urn:Belkin:service:basicevent:1">
+            <BinaryState>%s</BinaryState>
+            </u:SetBinaryStateResponse>
+            </s:Body>
+            </s:Envelope>""" % (self.action_handler.status())
+            date_str = email.utils.formatdate(timeval=None, localtime=False, usegmt=True)
+            message = ("HTTP/1.1 200 OK\r\n"
+                           "CONTENT-LENGTH: %d\r\n"
+                           "CONTENT-TYPE: text/xml charset=\"utf-8\"\r\n"
+                           "DATE: %s\r\n"
+                           "EXT:\r\n"
+                           "SERVER: Unspecified, UPnP/1.0, Unspecified\r\n"
+                           "X-User-Agent: redsonic\r\n"
+                           "CONNECTION: close\r\n"
+                           "\r\n"
+                           "%s" % (len(soap), date_str, soap))
+            dbg("WE ARE RESPONDING WITH: %s" % message)
+            socket.send(message)
+
+
         else:
             dbg(data)
 
@@ -323,7 +364,7 @@ class upnp_broadcast_responder(object):
     def do_read(self, fileno):
         data, sender = self.recvfrom(1024)
         if data:
-            if data.find('M-SEARCH') == 0 and data.find('urn:Belkin:device:**') != -1:
+            if data.find('M-SEARCH') == 0 and data.find('rootdevice') != -1:
                 for device in self.devices:
                     time.sleep(0.1)
                     device.respond_to_search(sender, 'urn:Belkin:device:**')
@@ -388,18 +429,22 @@ class dummy_handler(object):
 class gpio_handler(object):
     def __init__(self, pin_number):
         self.pin = pin_number
-        GPIO.setmode(GPIO.BOARD)
+        GPIO.setmode(GPIO.BCM)
         GPIO.setup(pin_number, GPIO.OUT)
 
     def on(self):
         print(self.pin, "ON")
-        GPIO.output(self.pin, 0)
+        GPIO.output(self.pin, GPIO.HIGH)
         return True
 
     def off(self):
         print(self.pin, "OFF")
-        GPIO.output(self.pin, 1)
+        GPIO.output(self.pin, GPIO.LOW)
         return True
+    def status(self):
+        starea = GPIO.input(self.pin)
+        print(self.pin, "status"+str(starea))
+        return starea
 
 # Each entry is a list with the following elements:
 #
@@ -417,8 +462,7 @@ class gpio_handler(object):
 # ]
 
 FAUXMOS = [
-        ['office lights', gpio_handler(35)],
-        ['kitchen lights', gpio_handler(37)],
+        ['globe', gpio_handler(22), 50022],
     ]
 
 # FAUXMOS = [
@@ -446,7 +490,7 @@ for one_faux in FAUXMOS:
         # a fixed port wasn't specified, use a dynamic one
         one_faux.append(0)
     switch = fauxmo(one_faux[0], u, p, None, one_faux[2], action_handler = one_faux[1])
-
+dbg("handler is %s " % one_faux[1])
 dbg("Entering main loop\n")
 
 while True:
