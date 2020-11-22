@@ -12,3 +12,7 @@ first install rpi.GPIO:
 # sudo apt-get update
 # sudo apt-get install python-pip python-dev gcc
 # sudo pip install rpi.gpio
+
+ sudo cp fauxmo.service /etc/systemd/system/
+ sudo systemctl start fauxmo
+ sudo systemctl enable fauxmo
